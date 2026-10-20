@@ -30,3 +30,25 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: home-assistant/actions/hassfest@master
+
+  # Runs on GitHub and on Forgejo: uv brings its own Python (as in fox-ess, where
+  # this works on the Forgejo runner), and the panel is cloned over plain git, so
+  # nothing here depends on the forge.
+  pytest:
+    name: Pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+          activate-environment: true
+      - name: Install
+        # modbus-connection as pinned by HA 2026.10.0's modbus component
+        run: uv pip install pytest "modbus-connection==4.12.3"
+      - name: Panel checkout for the map-parity test
+        run: git clone --depth 1 https://github.com/jrx-code/modbus-ui.git "$RUNNER_TEMP/modbus-ui"
+      - name: Tests
+        env:
+          MODBUS_UI_APP: ${{ runner.temp }}/modbus-ui/app
+        run: pytest tests/ -q -rs

@@ -14,6 +14,7 @@ Test pomija się sam, gdy checkout panelu nie leży obok.
 from __future__ import annotations
 
 import importlib.util
+import os
 import pathlib
 import sys
 
@@ -23,6 +24,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 COMPONENT = HERE.parent / "custom_components" / "toshiba_modbus"
 
 CANDIDATES = [
+    # CI: checkout publicznego jrx-code/modbus-ui, ścieżka do jego app/
+    *([pathlib.Path(os.environ["MODBUS_UI_APP"])] if os.environ.get("MODBUS_UI_APP") else []),
     pathlib.Path.home() / "CodeHub" / "z4-server" / "serwisy" / "modbus-ui" / "app",
     HERE.parent.parent.parent.parent / "z4-server" / "serwisy" / "modbus-ui" / "app",
 ]
