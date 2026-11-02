@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 440" role="img" aria-labelledby="t d">
+  <title id="t">Signal path from the indoor units to Home Assistant, and the power meter on the outdoor unit</title>
+  <desc id="d">Indoor units connect through RAC adapters and the Uh line to the BMS-IFMB1280U-E Modbus interface, then through an RS-485 gateway to Home Assistant. The outdoor unit is not reported over Modbus; an optional power meter on its supply feeds an Outdoor unit device.</desc>
+  <style>
+    .bg{fill:#fff;stroke:#d0d7de}
+    .box{fill:#f6f8fa;stroke:#8c959f;stroke-width:1.5}
+    .opt{fill:#ddf4ff;stroke:#0969da;stroke-width:2}
+    .ln{stroke:#1f2328;stroke-width:1.6;fill:none}
+    .lo{stroke:#0969da;stroke-width:2;fill:none}
+    .no{stroke:#cf222e;stroke-width:1.8;fill:none;stroke-dasharray:6 4}
+    .t{font:600 14px -apple-system,Segoe UI,Helvetica,Arial,sans-serif;fill:#1f2328}
+    .s{font:12.5px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#57606a}
+    .l{font:12px -apple-system,Segoe UI,Helvetica,Arial,sans-serif;fill:#57606a}
+    .lb{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#0969da}
+    .lr{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#cf222e}
+    .h{font:600 11px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#57606a;letter-spacing:.06em}
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#1f2328"/></marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#0969da"/></marker>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#cf222e"/></marker>
+  </defs>
+  <rect class="bg" x=".5" y=".5" width="1099" height="439" rx="8"/>
+
+  <text class="h" x="20" y="28">CONTROL PATH (Modbus)</text>
+  <rect class="box" x="20" y="50" width="170" height="76" rx="5"/>
+  <text class="t" x="105" y="82" text-anchor="middle">Indoor units</text>
+  <text class="s" x="105" y="102" text-anchor="middle">RAS-B10N4KVRG-E1 ×N</text>
+
+  <rect class="box" x="240" y="50" width="170" height="76" rx="5"/>
+  <text class="t" x="325" y="82" text-anchor="middle">RAC adapter</text>
+  <text class="s" x="325" y="102" text-anchor="middle">TCB-SSRL011UUP-E ×N</text>
+
+  <rect class="box" x="460" y="50" width="170" height="76" rx="5"/>
+  <text class="t" x="545" y="82" text-anchor="middle">Modbus interface</text>
+  <text class="s" x="545" y="102" text-anchor="middle">BMS-IFMB1280U-E</text>
+
+  <rect class="box" x="680" y="50" width="150" height="76" rx="5"/>
+  <text class="t" x="755" y="82" text-anchor="middle">Serial gateway</text>
+  <text class="s" x="755" y="102" text-anchor="middle">RS-485 to Ethernet</text>
+
+  <rect class="opt" x="880" y="50" width="200" height="76" rx="5"/>
+  <text class="t" x="980" y="78" text-anchor="middle">Home Assistant</text>
+  <text class="s" x="980" y="97" text-anchor="middle">core modbus link</text>
+  <text class="s" x="980" y="114" text-anchor="middle">+ toshiba_modbus</text>
+
+  <line class="ln" x1="190" y1="88" x2="238" y2="88" marker-end="url(#a)"/>
+  <text class="l" x="214" y="76" text-anchor="middle">UART</text>
+  <line class="ln" x1="410" y1="88" x2="458" y2="88" marker-end="url(#a)"/>
+  <text class="l" x="434" y="76" text-anchor="middle">Uh line</text>
+  <line class="ln" x1="630" y1="88" x2="678" y2="88" marker-end="url(#a)"/>
+  <text class="l" x="654" y="76" text-anchor="middle">RS-485</text>
+  <line class="ln" x1="830" y1="88" x2="878" y2="88" marker-end="url(#a)"/>
+  <text class="l" x="854" y="76" text-anchor="middle">TCP</text>
+
+  <text class="h" x="20" y="226">OUTDOOR UNIT (optional meter)</text>
+  <rect class="box" x="20" y="250" width="200" height="76" rx="5"/>
+  <text class="t" x="120" y="282" text-anchor="middle">Outdoor unit</text>
+  <text class="s" x="120" y="302" text-anchor="middle">one for all indoor units</text>
+
+  <line class="ln" x1="70" y1="126" x2="70" y2="248"/>
+  <text class="l" x="78" y="196">refrigerant circuit</text>
+  <path class="no" d="M545 126 V204 H170 V248" marker-end="url(#ar)"/>
+  <text class="lr" x="358" y="198" text-anchor="middle">X  not reported: N+2 answers exception 0x02</text>
+
+  <rect class="opt" x="400" y="250" width="220" height="76" rx="5"/>
+  <text class="t" x="510" y="282" text-anchor="middle">Power meter</text>
+  <text class="s" x="510" y="302" text-anchor="middle">DIN relay, smart plug</text>
+  <line class="lo" x1="398" y1="288" x2="222" y2="288" marker-end="url(#ab)"/>
+  <text class="lb" x="310" y="278" text-anchor="middle">230 V</text>
+
+  <rect class="opt" x="860" y="250" width="220" height="76" rx="5"/>
+  <text class="t" x="970" y="282" text-anchor="middle">Outdoor unit device</text>
+  <text class="s" x="970" y="302" text-anchor="middle">power · energy · running</text>
+  <line class="lo" x1="622" y1="288" x2="858" y2="288" marker-end="url(#ab)"/>
+  <text class="lb" x="740" y="278" text-anchor="middle">power and energy sensors</text>
+  <line class="lo" x1="980" y1="248" x2="980" y2="128" marker-end="url(#ab)"/>
+  <text class="lb" x="990" y="196">same config entry</text>
+
+  <g transform="translate(20 380)">
+    <rect class="box" x="0" y="0" width="22" height="14" rx="2"/><text class="l" x="30" y="12">always present</text>
+    <rect class="opt" x="150" y="0" width="22" height="14" rx="2"/><text class="l" x="180" y="12">optional or Home Assistant side</text>
+    <line class="no" x1="420" y1="7" x2="450" y2="7"/><text class="l" x="460" y="12">no access over Modbus</text>
+  </g>
+</svg>

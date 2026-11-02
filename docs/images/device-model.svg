@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 520" role="img" aria-labelledby="t d">
+  <title id="t">Devices and entities created by the integration</title>
+  <desc id="d">The Modbus interface is the parent device. Under it hang one device per indoor unit and, if a power meter was chosen, an Outdoor unit device for the outdoor unit.</desc>
+  <style>
+    .bg{fill:#fff;stroke:#d0d7de}
+    .box{fill:#f6f8fa;stroke:#8c959f;stroke-width:1.5}
+    .opt{fill:#ddf4ff;stroke:#0969da;stroke-width:2}
+    .ln{stroke:#1f2328;stroke-width:1.6;fill:none}
+    .t{font:600 14px -apple-system,Segoe UI,Helvetica,Arial,sans-serif;fill:#1f2328}
+    .s{font:12.5px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#57606a}
+    .k{font:600 11px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#57606a;letter-spacing:.06em}
+    .kb{font:600 11px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#0969da;letter-spacing:.06em}
+  </style>
+  <rect class="bg" x=".5" y=".5" width="1099" height="519" rx="8"/>
+
+  <rect class="box" x="300" y="24" width="500" height="120" rx="5"/>
+  <text class="t" x="550" y="50" text-anchor="middle">Modbus interface (parent device)</text>
+  <text class="s" x="550" y="74" text-anchor="middle">binary_sensor  connectivity (available when the bus is not)</text>
+  <text class="s" x="550" y="92" text-anchor="middle">sensor  bus messages, errors, frames per cycle, units present</text>
+  <text class="s" x="550" y="110" text-anchor="middle">sensor  interface status, slave address, rare-event counters</text>
+  <text class="s" x="550" y="128" text-anchor="middle">button  find indoor units · firmware = interface version</text>
+
+  <path class="ln" d="M550 144 V176 H300 V204" marker-end="url(#a)"/>
+  <path class="ln" d="M550 144 V176 H850 V204" marker-end="url(#a)"/>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#1f2328"/></marker></defs>
+
+  <rect class="box" x="20" y="206" width="560" height="288" rx="5"/>
+  <text class="t" x="36" y="234">Indoor unit ×N (one device each)</text>
+  <text class="k" x="36" y="260">CLIMATE</text>
+  <text class="s" x="36" y="278">power, setpoint 17-30 °C, mode, fan, swing</text>
+  <text class="s" x="36" y="296">attributes: check_code, check_code_description, rac_functions</text>
+  <text class="k" x="36" y="324">CONTROLS</text>
+  <text class="s" x="36" y="342">select  power limit (Save)</text>
+  <text class="s" x="36" y="360">switch  Hi-Power, ECO, Quiet FCU, Silence CDU</text>
+  <text class="s" x="36" y="378">switch  six remote-controller locks · button  reset filter</text>
+  <text class="k" x="36" y="406">READBACK</text>
+  <text class="s" x="36" y="424">sensor  setpoint, mode, fan, louver, capacity, hours</text>
+  <text class="s" x="36" y="442">sensor  check code (decoded), model, serial number</text>
+  <text class="s" x="36" y="460">binary_sensor  power, filter, alarm, five RAC function states</text>
+  <text class="s" x="36" y="482">no hvac_action: a RAC interface never reports the thermo bit</text>
+
+  <rect class="opt" x="620" y="206" width="460" height="168" rx="5"/>
+  <text class="t" x="636" y="234">Outdoor unit (optional, one for the system)</text>
+  <text class="kb" x="636" y="260">FROM AN EXTERNAL POWER METER</text>
+  <text class="s" x="636" y="280">sensor  power draw</text>
+  <text class="s" x="636" y="298">sensor  energy (unit and class copied from the source)</text>
+  <text class="s" x="636" y="316">binary_sensor  running (power at or above the threshold)</text>
+  <text class="s" x="636" y="344">model and serial typed in the setup or the options</text>
+
+  <rect class="box" x="620" y="394" width="460" height="100" rx="5"/>
+  <text class="k" x="636" y="420">WHY ONE METER, NOT ONE PER ROOM</text>
+  <text class="s" x="636" y="442">a multisplit has a single outdoor unit; its supply</text>
+  <text class="s" x="636" y="460">says that something runs, not which room asked for it</text>
+</svg>

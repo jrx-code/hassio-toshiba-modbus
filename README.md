@@ -2,62 +2,87 @@
 
 # Toshiba RAC (Modbus) for Home Assistant
 
-Local control of Toshiba residential air conditioners through the
-**BMS-IFMB1280U-E** Modbus interface and one **TCB-SSRL011UUP-E** RAC adapter per
-indoor unit. No cloud, no vendor account, no polling of a remote API.
+[![Release](https://img.shields.io/github/v/release/jrx-code/hassio-toshiba-modbus)](https://github.com/jrx-code/hassio-toshiba-modbus/releases/latest)
+[![Validate](https://github.com/jrx-code/hassio-toshiba-modbus/actions/workflows/validate.yml/badge.svg)](https://github.com/jrx-code/hassio-toshiba-modbus/actions/workflows/validate.yml)
+[![HACS](https://img.shields.io/badge/HACS-default-41BDF5.svg)](https://hacs.xyz)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-```
-indoor unit --UART(CN50)--> RAC I/F --Uh line--> BMS-IFMB1280U-E --RS-485--> gateway --TCP--> HA
-```
+Local control of Toshiba residential air conditioners through the **BMS-IFMB1280U-E** Modbus interface
+and one **TCB-SSRL011UUP-E** RAC adapter per indoor unit. No cloud, no vendor account, no polling of a remote API.
 
-![Integration page: two interfaces, each with the indoor units below it](docs/images/integration.png)
+![Signal path from the indoor units to Home Assistant, and the power meter on the outdoor unit](docs/images/architecture.svg)
 
-One device per interface and one per indoor unit, hung under it with `via_device`.
-Model and serial number come from registers `30007` and `30015`. A RAC adapter answers
-the serial register with `0xFF` only, so for RAC units the serial is typed in under
-*Configure* (from the nameplate or the Toshiba app); a value the interface does report
-always wins over a typed one. The same step takes a model per unit, for adapters that
-answer the model register with the placeholder "RACIF Model Name" (two of three on the
-installed system).
+## What you get
+
+- **A `climate` entity per indoor unit** with power, setpoint, mode, fan and swing, and the check code decoded into
+  text (`19: TD sensor (Discharge pipe temperature sensor) error`), outdoor-unit faults included.
+- **The controls the remote has and the cloud app hides:** power limit, Hi-Power, ECO, Quiet FCU, Silence CDU and the
+  six remote-controller locks, as `select` and `switch` entities.
+- **A device per unit and one for the interface**, with model and serial number, a connectivity sensor and bus diagnostics
+  that tell a noisy RS-485 line from a second master on the gateway.
+- **The outdoor unit, with a power meter** (optional): power, energy and a *Running* sensor, from any meter on its supply.
+  The interface reports nothing about the outdoor unit itself.
+- **Units that join later** are found by a button or a background scan, without a restart.
+
+![Device page of an indoor unit](docs/images/device.png)
+
+## Quick start
+
+1. **Install** with HACS (it is in the default store) or from the release zip, then restart Home Assistant.
+   Requires Home Assistant **2026.9** or later. See [Installation](docs/installation.md).
+2. *Settings, Devices & services, Add integration, Toshiba RAC (Modbus)*, and enter the address of the RS-485 gateway,
+   the framing and the slave address from switch **SW1**.
+3. Tick and name the units. Optionally type the serial numbers and choose a power meter for the outdoor unit.
+   See [Configuration](docs/configuration.md).
+
+<p>
+<img src="docs/images/setup-connection.png" alt="First step: gateway address, port, framing, slave address" width="49%">
+<img src="docs/images/setup-units.png" alt="Second step: one checkbox and one name field per discovered unit" width="49%">
+</p>
+
+## Documentation
+
+| | |
+|---|---|
+| [Installation](docs/installation.md) | Requirements, interface settings that decide whether it works, HACS and manual install |
+| [Configuration](docs/configuration.md) | Every step of the setup and the options, units that appear later, the outdoor-unit meter |
+| [Entities](docs/entities.md) | Every entity and attribute, check codes, why there is no `hvac_action` |
+| [Automations](docs/automations.md) | Window and alarm automations, energy per day, month and year, a dashboard card |
+| [Troubleshooting](docs/troubleshooting.md) | Setup errors, unavailable entities, a noisy bus |
+| [Hardware notes](docs/hardware.md) | What cost time to find, and what Modbus cannot give you |
+| [Contributing](CONTRIBUTING.md) | Tests, the emulator, releasing |
+| [Changelog](CHANGELOG.md) | What changed in each version |
 
 ## Why not the built-in `modbus` integration
 
-It works, and for a first light it is the faster route. It also has three limits
-this map runs straight into:
+It works, and for a first light it is the faster route. It also has limits this map runs straight into:
 
 | | Built-in `modbus` | This integration |
 |---|---|---|
-| Devices in the registry | none — `entity.py` sets no `DeviceInfo` | one device per indoor unit, model and serial read from registers `30007` / `30015` |
-| Frames per poll (3 units) | 96 — one transaction per entity | 21 — reads merged into contiguous blocks |
+| Devices in the registry | none, `entity.py` sets no `DeviceInfo` | one device per indoor unit, model and serial read from registers `30007` / `30015` |
+| Frames per poll (3 units) | 96, one transaction per entity | 21, reads merged into contiguous blocks |
 | Power limit (`40011`), remote-controller lock (`40010`) | no `select`, no `number` platform; scripts only | `select` and six `switch` entities |
 | Missing indoor unit | valid frame of zeros, shown as real data | `unavailable`, detected from the model name |
-| Mode / fan / louver names, check codes | numbers, mapped in templates | mapped in the integration |
+| Mode / fan / louver names, check codes | numbers, mapped in templates | mapped and decoded in the integration |
 
-## Install
+Since 0.4.0 the integration borrows its Modbus link from the core `modbus` integration, which shares one connection per
+gateway between everything that asks for it and queues the requests, so the two can run side by side.
 
-Requires Home Assistant **2026.9** or later. Since 0.4.0 the integration borrows its
-Modbus link from the core `modbus` integration (`async_get_unit`), which shares one
-connection per gateway between every entry and integration that asks for it and queues
-their requests behind it. Nothing needs configuring in `modbus` itself; it is loaded as
-a dependency.
+## Testing without hardware
 
-**HACS** — add this repository as a custom repository of type *Integration*,
-install, restart Home Assistant. HACS pulls `toshiba_modbus.zip` from the release and
-unpacks it into `custom_components/toshiba_modbus`, so an install is one download
-rather than thirty.
+`tools/emulator.py` is a dependency-free Modbus RTU-over-TCP server that answers like the real interface, including the
+three slave addresses, the zero-filled frame for a missing unit and function `0x08`:
 
-**Manually** — download `toshiba_modbus-<version>.zip` from the release, unpack it over
-your `config/` directory (it already carries the `custom_components/toshiba_modbus/`
-path), and restart.
+```bash
+python3 tools/emulator.py --port 5502 --units 1,2,3 --absent 3
+```
 
-Then *Settings → Devices & services → Add integration → Toshiba RAC (Modbus)*.
+Add the integration against `<host>:5502` with framing `rtuovertcp`. See [Contributing](CONTRIBUTING.md#tests) for the tests.
 
 ## Icons
 
-Two kinds, both local to the component — no PR to `home-assistant/brands`, no manifest key.
-
-`brand/` holds the integration artwork. Measured on HA 2026.7.4 by uploading eight
-distinct numbered boards at once and reading the result off the screenshots:
+Two kinds, both local to the component, so no pull request to `home-assistant/brands` and no manifest key.
+`brand/` holds the integration artwork (measured on Home Assistant 2026.7.4):
 
 | Where in the UI | Light theme | Dark theme |
 |---|---|---|
@@ -66,169 +91,24 @@ distinct numbered boards at once and reading the result off the screenshots:
 | Badge in the top-right corner of a device page | `logo.png` | `dark_logo.png` |
 | Config-flow dialog | none | none |
 
-`logo@2x.png` and `dark_logo@2x.png` did not appear in any view. Editing any of these
-takes effect on the next request — the endpoint reads from disk — so a browser hard
-refresh is enough, no HA restart.
-
-`icons.json` maps every entity to an MDI icon by its translation key. Without it the six
-remote-lock switches all render as the generic tablet glyph and the readback sensors as an
-eye. Icon names are validated against `/static/mdi/iconList.json` served by the running
-instance; an unknown name renders as blank space, not an error.
-
-![Device page: climate control, switches, readback sensors and the remote-lock block](docs/images/device.png)
-
-The badge in the corner of that page is `logo.png`; the small mark next to
-"Toshiba RAC (Modbus)" in the device-info card is `icon.png`.
-
-## Configuration
-
-| Field | Meaning |
-|---|---|
-| Gateway address / port | The RS-485 gateway in front of the interface, not the interface itself. Serial bridges typically listen on 8899 or 502; `tools/emulator.py` defaults to 5502 |
-| Framing | `rtuovertcp` for transparent bridges (Elfin EW11), `tcp` for gateways doing MBAP ⇄ RTU conversion (Waveshare mode 5) |
-| Slave address | Must equal switch **SW1** on the interface board |
-| Scan central addresses up to | One frame per address; units that do not answer are skipped |
-
-<p>
-<img src="docs/images/setup-connection.png" alt="First step: gateway address, port, framing, slave address" width="49%">
-<img src="docs/images/setup-units.png" alt="Second step: one checkbox and one name field per discovered unit" width="49%">
-</p>
-
-Setup reads the model name of each candidate address, then the serial number of the ones
-that answer, and puts the whole result in **one dialog**: a checkbox per unit labelled
-with its address, model and serial, and a name field beside it. An interface serves up to
-64 central addresses and not all of them have to belong to this installation, so clear
-what you do not want. Names have to be typed here — the registers carry the model and the
-serial, never a location.
-
-A cleared address is remembered as excluded, so neither the background scan nor the
-button brings it back. Restore it later under *Configure* on the entry.
-
-**An interface with no indoor units is a valid setup.** Before the RAC adapters are
-fitted the Uh bus is empty and every address answers with zeros; the entry is created
-anyway, with the interface as its only device. Units join later, as they appear.
-
-## Units that appear later
-
-Adapters get fitted one at a time, so discovery is not a one-off event:
-
-- **Find indoor units** — a button on the interface device. Press it after fitting an
-  adapter instead of waiting.
-- **Background rescan** — every `rescan_interval` seconds (default 300) the integration
-  scans only the addresses it does not know yet, so once the full set is found it costs
-  nothing. Set the interval to `0` to leave the button as the only route.
-
-A unit found this way is read once immediately, then its device and entities are created
-— without a restart and without reloading the entry.
-
-## Entities per indoor unit
-
-- `climate` — power, setpoint (17–30 °C, 0.5 °C), mode, fan, swing, and the check code
-  as an attribute. There is no `hvac_action`: a RAC interface does not report the
-  thermo (compressor) bit, so nothing says whether the unit is actually cooling
-- `select` — power limit (Save)
-- `switch` — Hi-Power, ECO, Quiet FCU, Silence CDU, and six remote-controller lock bits
-- `button` — reset the filter sign
-- `sensor` — setpoint readback, capacity, operating hours, check code, mode/fan/louver
-  readback, model, serial number
-- `binary_sensor` — power, filter, alarm, and the five RAC function statuses
-
-Special-function switches disable themselves when register `30059` says the unit
-does not support them. Every entity is enabled by default; the ones that mainly
-matter while commissioning carry the diagnostic category, so they sit in their own
-section of the device page instead of on the dashboard.
-
-## Entities for the interface itself
-
-The Modbus interface is its own device, with the indoor units nested under it:
-
-- `binary_sensor` — connectivity, which stays available precisely when the bus is not
-- `sensor` — bus messages, communication errors, messages to the interface, frames in
-  the last cycle, units present, slave address, interface status, and four rare-event
-  counters: exception responses, messages without response, busy responses, character
-  overruns
-
-The interface's software version (registers `39985`–`39992`, `4.03` on the installed
-unit) is shown as the firmware of the interface device.
-
-The three counters come from function `0x08`, which the interface answers itself and
-which never reaches the Uh bus, so they cost three frames per cycle and nothing on the
-appliances. The error counter is the one worth watching: rising while the connection
-looks fine means interference on RS-485 — or a second master on the same line.
-
-Interface status (register `39993`) and the four rare-event counters are read every
-five minutes, not every cycle: each frame costs about 0.9 s, and three units already
-take about 24 s of a 30 s interval. `suspended` and `address_duplicated` are the states
-to alert on — the interface still answers diagnostics, but no longer serves the units.
-
-## Hardware notes that cost time to find
-
-- **The interface occupies three slave addresses.** `N` covers central addresses
-  1–64, `N+1` covers 65–128, `N+2` answers loopback but returns exception `0x02`
-  for register reads.
-- **The interface does not report the outdoor unit.** A multisplit has one outdoor unit
-  for all indoor ones, and the RAC interface has no registers for it (Service Manual
-  rev. 7, section 8-2 covers only EER/VRF; `N+2` answers loopback and nothing else).
-  To get its power draw, pick a power sensor on its supply in the setup or later in
-  the options ("Outdoor unit"): that creates an `Agregat` device with power, energy and a `Running` sensor.
-  One meter for the whole system, so it cannot tell which room is the reason.
-- **`Central controller ID` must be `old controller`** when RAC adapters are used
-  (Service Manual A10-2103-7 rev. 7, p. 16). The factory value is ID20 and it
-  silently does not work. That also caps the site at 64 indoor units.
-- **A missing indoor unit does not raise an exception.** It returns a valid frame
-  of zeros, so zero cannot distinguish "off" from "not there". The model-name
-  string is the only reliable presence test.
-- **The address stride differs per space**: 152 for coils and discrete inputs,
-  156 for input and holding registers.
-- **One master per bus.** Serial gateways tested here accept several TCP clients
-  but do not correlate replies to them — a second poller receives frames answering
-  someone else's request. Point exactly one thing at the gateway.
-
-## Testing without hardware
-
-`tools/emulator.py` is a dependency-free Modbus RTU-over-TCP server that answers
-like the real interface, including the three slave addresses, the zero-filled
-frame for a missing unit, and function `0x08`.
-
-```bash
-python3 tools/emulator.py --port 5502 --units 1,2,3 --absent 3
-```
-
-Then add the integration against `<host>:5502` with framing `rtuovertcp`. Unit 3
-is absent by default, so there is something to check `unavailable` against.
-
-```bash
-python3 -m pytest tests/ -q
-```
-
-`tests/test_map_parity.py` compares the register map against the `modbus-ui`
-panel's map when that checkout is present, so the two cannot drift apart unnoticed.
+`icons.json` maps every entity to an MDI icon by its translation key. Editing the artwork takes effect on the next request,
+so a browser hard refresh is enough, no restart.
 
 ## License
 
 **Apache License 2.0.** Copyright 2026 JI ENGINEERING.
 
-The point of picking Apache over MIT here is `NOTICE`: section 4(d) obliges any
-derivative work you distribute to carry a readable copy of the attribution notices
-from that file — in its own `NOTICE`, in the documentation, or wherever third-party
-notices normally appear in the product. So a fork keeps the credit whether or not
-anyone opens `LICENSE`.
+The point of picking Apache over MIT here is `NOTICE`: section 4(d) obliges any derivative work you distribute to carry a
+readable copy of the attribution notices from that file, in its own `NOTICE`, in the documentation, or wherever third-party
+notices normally appear in the product. So a fork keeps the credit whether or not anyone opens `LICENSE`. In short,
+redistribution requires shipping a copy of the licence (4a), marking the files you changed (4b), keeping the copyright, patent,
+trademark and attribution notices found in the source (4c) and carrying the contents of `NOTICE` (4d). In exchange the
+licence grants an explicit patent licence (section 3), which MIT does not. Every source file carries
+`SPDX-License-Identifier: Apache-2.0`.
 
-What redistribution requires, in short:
+Toshiba and the Toshiba logo are trademarks of Toshiba Corporation. This project is not affiliated with, authorised by or
+endorsed by it; the artwork in `custom_components/toshiba_modbus/brand/` is built from the manufacturer's own product images
+and identifies the hardware the integration talks to.
 
-- ship a copy of the licence (section 4a);
-- mark the files you changed (4b);
-- keep the copyright, patent, trademark and attribution notices found in the source (4c);
-- carry the contents of `NOTICE` (4d).
-
-In exchange the licence grants an explicit patent licence (section 3), which MIT
-does not. Every source file carries `SPDX-License-Identifier: Apache-2.0`, so the
-terms travel with the file even out of context.
-
-Toshiba and the Toshiba logo are trademarks of Toshiba Corporation. This project
-is not affiliated with, authorised by or endorsed by it; the artwork in
-`custom_components/toshiba_modbus/brand/` is built from the manufacturer's own
-product images and identifies the hardware the integration talks to.
-
-The Modbus link comes from Home Assistant's core `modbus` integration and its
-`modbus-connection` library (Apache-2.0); the integration adds no runtime dependency of its own.
+The Modbus link comes from Home Assistant's core `modbus` integration and its `modbus-connection` library (Apache-2.0); the
+integration adds no runtime dependency of its own.

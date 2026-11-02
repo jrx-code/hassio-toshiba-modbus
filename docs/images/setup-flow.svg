@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 330" role="img" aria-labelledby="t d">
+  <title id="t">Setup flow of the integration</title>
+  <desc id="d">Four steps: Connection, Units, Serial numbers and models (optional), Outdoor unit (optional), then the entry is created. An empty bus skips the Units and Serial numbers steps.</desc>
+  <style>
+    .bg{fill:#fff;stroke:#d0d7de}
+    .box{fill:#f6f8fa;stroke:#8c959f;stroke-width:1.5}
+    .opt{fill:#ddf4ff;stroke:#0969da;stroke-width:2}
+    .ok{fill:#dafbe1;stroke:#1a7f37;stroke-width:2}
+    .ln{stroke:#1f2328;stroke-width:1.6;fill:none}
+    .sk{stroke:#8c959f;stroke-width:1.6;fill:none;stroke-dasharray:6 4}
+    .t{font:600 14px -apple-system,Segoe UI,Helvetica,Arial,sans-serif;fill:#1f2328}
+    .s{font:12.5px -apple-system,Segoe UI,Helvetica,Arial,sans-serif;fill:#57606a}
+    .n{font:600 11px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#57606a;letter-spacing:.06em}
+    .l{font:12px -apple-system,Segoe UI,Helvetica,Arial,sans-serif;fill:#57606a}
+  </style>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#1f2328"/></marker>
+  <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#8c959f"/></marker></defs>
+  <rect class="bg" x=".5" y=".5" width="1099" height="329" rx="8"/>
+  <text class="n" x="20" y="28">SETUP: Settings, Devices &amp; services, Add integration, Toshiba RAC (Modbus)</text>
+
+  <rect class="box" x="20" y="90" width="230" height="110" rx="5"/>
+  <text class="n" x="34" y="112">STEP 1</text>
+  <text class="t" x="34" y="134">Connection</text>
+  <text class="s" x="34" y="156">gateway address and port,</text>
+  <text class="s" x="34" y="172">framing, slave address (SW1)</text>
+  <text class="s" x="34" y="188">scans the central addresses</text>
+
+  <rect class="box" x="300" y="90" width="230" height="110" rx="5"/>
+  <text class="n" x="314" y="112">STEP 2</text>
+  <text class="t" x="314" y="134">Units</text>
+  <text class="s" x="314" y="156">tick the units that belong here</text>
+  <text class="s" x="314" y="172">and name each room; cleared</text>
+  <text class="s" x="314" y="188">ones are remembered as excluded</text>
+
+  <rect class="opt" x="580" y="90" width="230" height="110" rx="5"/>
+  <text class="n" x="594" y="112">STEP 3 · OPTIONAL</text>
+  <text class="t" x="594" y="134">Serial numbers, models</text>
+  <text class="s" x="594" y="156">RAC adapters report no serial,</text>
+  <text class="s" x="594" y="172">so type it from the nameplate;</text>
+  <text class="s" x="594" y="188">model for placeholder adapters</text>
+
+  <rect class="opt" x="860" y="90" width="220" height="110" rx="5"/>
+  <text class="n" x="874" y="112">STEP 4 · OPTIONAL</text>
+  <text class="t" x="874" y="134">Outdoor unit</text>
+  <text class="s" x="874" y="156">power and energy sensor,</text>
+  <text class="s" x="874" y="172">running threshold, model,</text>
+  <text class="s" x="874" y="188">serial of the outdoor unit</text>
+
+  <line class="ln" x1="250" y1="145" x2="298" y2="145" marker-end="url(#a)"/>
+  <line class="ln" x1="530" y1="145" x2="578" y2="145" marker-end="url(#a)"/>
+  <line class="ln" x1="810" y1="145" x2="858" y2="145" marker-end="url(#a)"/>
+
+  <path class="sk" d="M135 90 V58 H970 V88" marker-end="url(#g)"/>
+  <text class="l" x="552" y="52" text-anchor="middle">empty bus (adapters not fitted yet): steps 2 and 3 are skipped</text>
+
+  <rect class="ok" x="860" y="250" width="220" height="48" rx="24"/>
+  <text class="t" x="970" y="279" text-anchor="middle">Entry created</text>
+  <line class="ln" x1="970" y1="200" x2="970" y2="248" marker-end="url(#a)"/>
+
+  <text class="l" x="20" y="262">The options of the entry repeat steps 3 and 4 with the saved values filled in, after the polling settings.</text>
+  <text class="l" x="20" y="282">A cleared field really clears the saved value. Units fitted later are found by the background scan or the button.</text>
+</svg>
