@@ -10,7 +10,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ADAPTER_MODEL, CONF_OUTDOOR_MODEL, CONF_OUTDOOR_SERIAL, DOMAIN, MANUFACTURER, OUTDOOR_NAME
+from .const import ADAPTER_MODEL, CONF_OUTDOOR_MODEL, CONF_OUTDOOR_SERIAL, DOMAIN, MANUFACTURER
 from .coordinator import ToshibaModbusCoordinator
 
 
@@ -82,7 +82,7 @@ class ToshibaOutdoorEntity(CoordinatorEntity[ToshibaModbusCoordinator]):
         options = c.entry.options
         return DeviceInfo(
             identifiers={(DOMAIN, f"{c.entry.entry_id}_outdoor")},
-            name=OUTDOOR_NAME,
+            translation_key="outdoor_unit",
             manufacturer=MANUFACTURER,
             model=options.get(CONF_OUTDOOR_MODEL) or "Outdoor unit",
             serial_number=options.get(CONF_OUTDOOR_SERIAL) or None,

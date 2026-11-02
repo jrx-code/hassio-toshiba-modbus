@@ -55,7 +55,6 @@ CONF_POWER_SENSOR: Final = "power_sensor"
 CONF_ENERGY_SENSOR: Final = "energy_sensor"
 CONF_OUTDOOR_MODEL: Final = "outdoor_model"
 CONF_OUTDOOR_SERIAL: Final = "outdoor_serial"
-OUTDOOR_NAME: Final = "Agregat"
 # Pobór od którego jednostkę uznajemy za pracującą. Postój falownika to kilka-kilkanaście
 # W, sprężarka zaczyna się od kilkuset.
 CONF_RUN_THRESHOLD: Final = "run_threshold"

@@ -36,7 +36,7 @@ def _tenths(c: ToshibaModbusCoordinator, u: int, space: str, key: str):
 
 def _check_code(c: ToshibaModbusCoordinator, u: int):
     code = reg.word_or_none(c.word(u, "input", "check_code"))
-    return None if code is None else reg.CHECK_CODES.get(code, f"0x{code:04X}")
+    return None if code is None else reg.check_code_text(code)
 
 
 SENSORS: tuple[ToshibaSensorDescription, ...] = (

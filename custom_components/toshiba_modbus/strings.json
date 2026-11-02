@@ -28,7 +28,7 @@
       },
       "power": {
         "title": "Outdoor unit",
-        "description": "Optional: a power meter on the outdoor unit's supply, for example a DIN relay with a meter or a smart plug. One meter for the whole system. It creates the Agregat device with power, energy and a Running sensor. The RAC interface does not report the outdoor unit, so this is the only source of its data. Leave the fields empty to skip.",
+        "description": "Optional: a power meter on the outdoor unit's supply, for example a DIN relay with a meter or a smart plug. One meter for the whole system. It creates the Outdoor unit device with power, energy and a Running sensor. The RAC interface does not report the outdoor unit, so this is the only source of its data. Leave the fields empty to skip.",
         "data": {
           "power_sensor": "Power sensor",
           "energy_sensor": "Energy sensor",
@@ -68,7 +68,7 @@
       },
       "power": {
         "title": "Outdoor unit",
-        "description": "Optional: a power meter on the outdoor unit's supply, for example a DIN relay with a meter or a smart plug. One meter for the whole system. It creates the Agregat device with power, energy and a Running sensor. The RAC interface does not report the outdoor unit, so this is the only source of its data. Leave the fields empty to skip.",
+        "description": "Optional: a power meter on the outdoor unit's supply, for example a DIN relay with a meter or a smart plug. One meter for the whole system. It creates the Outdoor unit device with power, energy and a Running sensor. The RAC interface does not report the outdoor unit, so this is the only source of its data. Leave the fields empty to skip.",
         "data": {
           "power_sensor": "Power sensor",
           "energy_sensor": "Energy sensor",
@@ -241,6 +241,14 @@
       "discover_units": {
         "name": "Find indoor units"
       }
+    }
+  },
+  "device": {
+    "interface": {
+      "name": "Modbus interface ({host})"
+    },
+    "outdoor_unit": {
+      "name": "Outdoor unit"
     }
   }
 }

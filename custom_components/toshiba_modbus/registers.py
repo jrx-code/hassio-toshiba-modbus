@@ -64,11 +64,86 @@ SAVE_UNAVAILABLE_RAC: Final = (3,)
 RC_LOCK_BITS: Final = ("onoff", "mode", "setpoint", "louver", "fan", "ventilation")
 FUNC_BITS: Final = ("pure_filter", "hi_power", "eco", "quiet_fcu", "silence_cdu")
 
-# Kody błędów: TU2C-LINK -> odpowiednik TCC-LINK (SM rozdz. "Caution at Servicing").
-CHECK_CODES: Final = {
-    0x00: "brak błędu", 0x04: "E04", 0x07: "H04", 0x0C: "F10", 0x0D: "F03",
-    0x0E: "J29", 0x0F: "F01", 0x11: "P12", 0x12: "F29", 0x14: "P26",
+# Check codes of the RAC interface, from Service Manual A10-2103-7 rev. 7, section 9-3.
+# The interface reports one word in `30003+156(n-1)`; 0 means no error. Which table
+# applies depends on the interface's type setting, so both are kept: the two ranges do
+# not overlap (residential codes are 0x40xx, light commercial ones are 0x00-0xFD).
+# Value: (code shown on the remote controller, description as in the manual).
+CHECK_CODES_RESIDENTIAL: Final = {
+    0x4004: ("04", "Serial signal error"),
+    0x4007: ("07", "Case thermo error"),
+    0x400C: ("0C", "TA sensor (Room temperature sensor) error"),
+    0x400D: ("0D", "TC sensor (Heat exchanger temperature sensor) error"),
+    0x400E: ("0E", "Refrigerant leak sensor error"),
+    0x400F: ("0F", "TCJ sensor (Heat exchanger temperature sensor) error"),
+    0x4011: ("11", "Indoor fan motor error"),
+    0x4012: ("12", "Indoor P.C. board error"),
+    0x4014: ("14", "G-Tr short circuit protection error"),
+    0x4016: ("16", "Comp position detection circuit error"),
+    0x4017: ("17", "Current sensor error"),
+    0x4018: ("18", "TE sensor (Outdoor heat exchanger temperature sensor) or TS (Suction pipe temperature sensor) error"),
+    0x4019: ("19", "TD sensor (Discharge pipe temperature sensor) error"),
+    0x401A: ("1A", "Outdoor fan motor error"),
+    0x401B: ("1B", "TO sensor (Outdoor temperature sensor) error"),
+    0x401C: ("1C", "Compressor system or other error"),
+    0x401D: ("1D", "Compressor does not rotate"),
+    0x401E: ("1E", "TD sensor (Discharge pipe temperature sensor) over limit"),
+    0x401F: ("1F", "Compressor break down"),
+    0x4021: ("21", "High pressure is detect"),
+    0x4025: ("25", "Refrigerant leak detection"),
+    0x4026: ("26", "Gas detector sensor error (only bi-flow)"),
+    0x4041: ("41", "UART communication error between RAC IF to RAC"),
 }
+CHECK_CODES_LIGHT_COMMERCIAL: Final = {
+    0x2C: ("C12", "Batch alarm of general-purpose equipment control interface"),
+    0x44: ("E04", "Communication circuit error between indoor and outdoor"),
+    0x4B: ("E11", "Communication error at optional PCB in indoor unit"),
+    0x5F: ("E31", "IPDU communication error"),
+    0x61: ("F01", "Indoor TCJ sensor error"),
+    0x63: ("F03", "Indoor TC1 sensor error"),
+    0x64: ("F04", "TD1 sensor error"),
+    0x66: ("F06", "TE1/TE2 sensor error"),
+    0x68: ("F08", "TO sensor error"),
+    0x6A: ("F10", "Indoor TA/TSA sensor error"),
+    0x7D: ("F29", "Indoor other error"),
+    0x81: ("H01", "Compressor break down"),
+    0x82: ("H02", "Magnet switch / Over current operation / Compressor error"),
+    0x83: ("H03", "Current detection circuit error"),
+    0x84: ("H04", "Comp-1 case thermo operation"),
+    0xBD: ("J29", "Refrigerant leak sensor error"),
+    0xBE: ("J30", "Refrigerant leak detection"),
+    0xBF: ("J31", "Refrigerant leak sensor life"),
+    0xE3: ("P03", "Discharge temp. TD1 error"),
+    0xEC: ("P12", "Indoor fan motor error"),
+    0xF4: ("P20", "High-pressure inverse error"),
+    0xF6: ("P22", "Outdoor fan IPDU error"),
+    0xFA: ("P26", "G-Tr short circuit protection error"),
+    0xFD: ("P29", "Comp position detection circuit error"),
+}
+NO_ERROR: Final = "No active error"
+
+
+def check_code_info(code: int) -> tuple[str, str] | None:
+    """(remote controller code, description) for a code word, None if the manual lacks it.
+
+    Releases up to 0.5.0 keyed a small table by the low byte of the residential codes
+    (0x04, 0x07 ...), which can never match a real 0x40xx word; the low byte is still
+    accepted when the high byte is empty, so a firmware that reports it that way works too.
+    """
+    if code in CHECK_CODES_RESIDENTIAL:
+        return CHECK_CODES_RESIDENTIAL[code]
+    if code in CHECK_CODES_LIGHT_COMMERCIAL:
+        return CHECK_CODES_LIGHT_COMMERCIAL[code]
+    return CHECK_CODES_RESIDENTIAL.get(0x4000 | code) if code <= 0xFF else None
+
+
+def check_code_text(code: int) -> str:
+    """One line for a check code: "19: TD sensor ... error", or the raw word when unknown."""
+    if code == 0:
+        return NO_ERROR
+    info = check_code_info(code)
+    return f"{info[0]}: {info[1]}" if info else f"0x{code:04X}"
+
 
 # --------------------------------------------------------------------------- offsety
 

@@ -118,10 +118,14 @@ class ToshibaClimate(ToshibaUnitEntity, ClimateEntity):
         func = reg.word_or_none(c.word(self._unit, "input", "func_status"))
         attrs: dict[str, object] = {}
         if code is not None:
-            attrs["kod_bledu"] = f"0x{code:04X}"
-            attrs["kod_bledu_opis"] = reg.CHECK_CODES.get(code, "nieznany")
+            attrs["check_code"] = f"0x{code:04X}"
+            attrs["check_code_description"] = reg.check_code_text(code)
+            # Polish names kept for dashboards written against 0.x; to be removed in 2.0.
+            attrs["kod_bledu"] = attrs["check_code"]
+            attrs["kod_bledu_opis"] = attrs["check_code_description"]
         if func is not None:
-            attrs["funkcje_rac"] = [n for i, n in enumerate(reg.FUNC_BITS) if func >> i & 1]
+            attrs["rac_functions"] = [n for i, n in enumerate(reg.FUNC_BITS) if func >> i & 1]
+            attrs["funkcje_rac"] = attrs["rac_functions"]
         return attrs
 
     # ------------------------------------------------------------------ zapis

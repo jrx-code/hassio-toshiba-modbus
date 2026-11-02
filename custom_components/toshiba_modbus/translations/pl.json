@@ -242,5 +242,13 @@
         "name": "Szukaj jednostek wewnętrznych"
       }
     }
+  },
+  "device": {
+    "interface": {
+      "name": "Interfejs Modbus ({host})"
+    },
+    "outdoor_unit": {
+      "name": "Agregat"
+    }
   }
 }
