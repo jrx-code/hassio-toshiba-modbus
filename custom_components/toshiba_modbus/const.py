@@ -48,6 +48,19 @@ CONF_SERIALS: Final = "serials"
 # modelu tekst zastępczy "RACIF Model Name" (zmierzone 2026-09-28 na dwóch z trzech).
 CONF_MODELS: Final = "models"
 
+# Zewnętrzny pomiar zasilania AGREGATU (np. BleBox switchBox DIN, Shelly, wtyczka z
+# licznikiem). Jeden na cały układ: multisplit ma jeden agregat na kilka jednostek
+# wewnętrznych, więc pomiar nie należy do żadnej z nich.
+CONF_POWER_SENSOR: Final = "power_sensor"
+CONF_ENERGY_SENSOR: Final = "energy_sensor"
+CONF_OUTDOOR_MODEL: Final = "outdoor_model"
+CONF_OUTDOOR_SERIAL: Final = "outdoor_serial"
+OUTDOOR_NAME: Final = "Agregat"
+# Pobór od którego jednostkę uznajemy za pracującą. Postój falownika to kilka-kilkanaście
+# W, sprężarka zaczyna się od kilkuset.
+CONF_RUN_THRESHOLD: Final = "run_threshold"
+DEFAULT_RUN_THRESHOLD: Final = 100
+
 MANUFACTURER: Final = "Toshiba"
 INTERFACE_MODEL: Final = "BMS-IFMB1280U-E"
 ADAPTER_MODEL: Final = "TCB-SSRL011UUP-E"

@@ -61,6 +61,12 @@ Remotes: `origin` = Forgejo, `github` = public mirror.
   idle while the unit cooled; 0.4.1 removed both. The address stays in the map because
   the emulator and the panel parity test use it. Do not bring `hvac_action` back from the
   mode register: mode says what was asked for, not what the unit is doing.
+- **Outdoor-unit power is one meter per system, not per indoor unit.** The `Agregat` device
+  (`ToshibaOutdoorEntity`, `power_sensor` / `energy_sensor` in the options) hangs under the
+  Modbus interface. Do not derive `hvac_action` per indoor unit from it: one meter cannot
+  say which of three rooms draws the power, and a unit that is on but satisfied would show
+  `heating`. Unit and state class are copied from the source sensor, because a BleBox
+  "energy last hour" and a lifetime total are both `energy`.
 - **Zero indoor units is a valid config entry.** The interface answers while the Uh bus
   is empty, which is exactly the state before the adapters are fitted. Refusing the entry
   there means the interface cannot be added until an installer has been on site.

@@ -18,7 +18,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN, SIGNAL_NEW_UNIT
 from .coordinator import ToshibaModbusCoordinator
-from .entity import ToshibaInterfaceEntity, ToshibaUnitEntity
+from .entity import ToshibaInterfaceEntity, ToshibaOutdoorEntity, ToshibaUnitEntity
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -57,6 +57,8 @@ async def async_setup_entry(
         for unit in coordinator.units
         for desc in BINARY_SENSORS
     ]
+    if coordinator.power_source():
+        entities.append(ToshibaOutdoorRunning(coordinator))
     entities.append(ToshibaInterfaceConnectivity(coordinator))
     async_add_entities(entities)
 
@@ -80,6 +82,27 @@ class ToshibaBinarySensor(ToshibaUnitEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         return self.coordinator.bit(self._unit, "discrete", self.entity_description.field)
+
+
+class ToshibaOutdoorRunning(ToshibaOutdoorEntity, BinarySensorEntity):
+    """Whether the outdoor unit draws more than standby, i.e. is really working.
+
+    The RAC interface never reports this (the thermo bit stays 0), and with one meter for
+    the whole system it cannot say WHICH room is the reason - only that something is.
+    """
+
+    _attr_translation_key = "running"
+    _attr_device_class = BinarySensorDeviceClass.RUNNING
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "running")
+
+    def _source(self) -> str | None:
+        return self.coordinator.power_source()
+
+    @property
+    def is_on(self) -> bool | None:
+        return self.coordinator.running()
 
 
 class ToshibaInterfaceConnectivity(ToshibaInterfaceEntity, BinarySensorEntity):
