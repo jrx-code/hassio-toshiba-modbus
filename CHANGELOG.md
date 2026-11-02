@@ -3,6 +3,13 @@
 All notable changes to this project. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project follows [Semantic Versioning](https://semver.org/) from 1.0.0 on.
 
+## [1.0.2] - 2026-11-02
+
+### Changed
+- The display name is now **Toshiba AC (Modbus)** (was "Toshiba RAC (Modbus)"), in line with the other Toshiba integrations in HACS.
+  The domain `toshiba_modbus` and every entity ID are unchanged.
+- Brand artwork replaced with the Toshiba Air Conditioning logo set (icon, logo, dark variants, `@2x`).
+
 ## [1.0.1] - 2026-11-02
 
 ### Fixed

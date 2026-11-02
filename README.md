@@ -1,6 +1,6 @@
 <img src="custom_components/toshiba_modbus/brand/logo.png" alt="Toshiba" width="420">
 
-# Toshiba RAC (Modbus) for Home Assistant
+# Toshiba AC (Modbus) for Home Assistant
 
 [![Release](https://img.shields.io/github/v/release/jrx-code/hassio-toshiba-modbus)](https://github.com/jrx-code/hassio-toshiba-modbus/releases/latest)
 [![Validate](https://github.com/jrx-code/hassio-toshiba-modbus/actions/workflows/validate.yml/badge.svg)](https://github.com/jrx-code/hassio-toshiba-modbus/actions/workflows/validate.yml)
@@ -30,7 +30,7 @@ and one **TCB-SSRL011UUP-E** RAC adapter per indoor unit. No cloud, no vendor ac
 
 1. **Install** with HACS (it is in the default store) or from the release zip, then restart Home Assistant.
    Requires Home Assistant **2026.9** or later. See [Installation](docs/installation.md).
-2. *Settings, Devices & services, Add integration, Toshiba RAC (Modbus)*, and enter the address of the RS-485 gateway,
+2. *Settings, Devices & services, Add integration, Toshiba AC (Modbus)*, and enter the address of the RS-485 gateway,
    the framing and the slave address from switch **SW1**.
 3. Tick and name the units. Optionally type the serial numbers and choose a power meter for the outdoor unit.
    See [Configuration](docs/configuration.md).

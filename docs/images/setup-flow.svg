@@ -16,7 +16,7 @@
   <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#1f2328"/></marker>
   <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#8c959f"/></marker></defs>
   <rect class="bg" x=".5" y=".5" width="1099" height="329" rx="8"/>
-  <text class="n" x="20" y="28">SETUP: Settings, Devices &amp; services, Add integration, Toshiba RAC (Modbus)</text>
+  <text class="n" x="20" y="28">SETUP: Settings, Devices &amp; services, Add integration, Toshiba AC (Modbus)</text>
 
   <rect class="box" x="20" y="90" width="230" height="110" rx="5"/>
   <text class="n" x="34" y="112">STEP 1</text>

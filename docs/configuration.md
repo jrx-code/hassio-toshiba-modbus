@@ -1,6 +1,6 @@
 # Configuration
 
-*Settings, Devices & services, Add integration, Toshiba RAC (Modbus).*
+*Settings, Devices & services, Add integration, Toshiba AC (Modbus).*
 
 ![The setup flow: connection, units, serial numbers, outdoor unit](images/setup-flow.svg)
 
