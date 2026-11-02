@@ -31,7 +31,7 @@ sit in their own section of the device page instead of on the dashboard.
 | `check_code` | The raw word, for example `0x4019`; `0x0000` is no error |
 | `check_code_description` | `19: TD sensor (Discharge pipe temperature sensor) error` |
 | `rac_functions` | The RAC functions the unit supports (`pure_filter`, `hi_power`, `eco`, `quiet_fcu`, `silence_cdu`) |
-| `kod_bledu`, `kod_bledu_opis`, `funkcje_rac` | **Deprecated** Polish aliases of the three above, kept for dashboards written against 0.x. Removed in 2.0.0 |
+| `kod_bledu`, `kod_bledu_opis`, `funkcje_rac` | **Deprecated** Polish aliases of the three above, kept for dashboards written against 0.x; `kod_bledu_opis` still reads `brak błędu` when there is no error. Removed in 2.0.0 |
 
 ### Check codes
 

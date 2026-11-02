@@ -3,6 +3,12 @@
 All notable changes to this project. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project follows [Semantic Versioning](https://semver.org/) from 1.0.0 on.
 
+## [1.0.1] - 2026-11-02
+
+### Fixed
+- `kod_bledu_opis` reads `brak błędu` again when there is no error. 1.0.0 returned the English text there, so dashboards written against 0.x
+  that match `brak` showed a healthy unit as an error.
+
 ## [1.0.0] - 2026-11-02
 
 First stable release. The integration has run against real hardware (three indoor units, one
@@ -100,6 +106,7 @@ the entity set and the attribute names below as the public interface.
   unit; interface device with bus diagnostics; one setup dialog to pick and name units; an
   interface with no indoor units is a valid entry; Toshiba artwork and entity icons; release zip.
 
+[1.0.1]: https://github.com/jrx-code/hassio-toshiba-modbus/releases/tag/v1.0.1
 [1.0.0]: https://github.com/jrx-code/hassio-toshiba-modbus/releases/tag/v1.0.0
 [0.5.0]: https://github.com/jrx-code/hassio-toshiba-modbus/releases/tag/v0.5.0
 [0.4.5]: https://github.com/jrx-code/hassio-toshiba-modbus/releases/tag/v0.4.5
