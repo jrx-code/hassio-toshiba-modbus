@@ -21,6 +21,25 @@
       "units": {
         "title": "Wykryte jednostki wewnętrzne",
         "description": "Interfejs zgłosił {count}. Odznacz te, które nie należą do tej instalacji — pominięte adresy nie wrócą przy skanowaniu w tle ani po naciśnięciu przycisku, dopóki nie przywrócisz ich w opcjach. Nazwy pomieszczeń trzeba podać tutaj, bo rejestry niosą tylko model i numer seryjny."
+      },
+      "serials": {
+        "title": "Numery seryjne i modele",
+        "description": "Interfejs RAC nie podaje numerów seryjnych, a część adapterów RAC zamiast modelu zwraca „RACIF Model Name”. Wpisz je z tabliczki znamionowej albo z aplikacji Toshiba; wartość podana przez interfejs ma pierwszeństwo. Puste pole kasuje wpis."
+      },
+      "power": {
+        "title": "Agregat",
+        "description": "Opcjonalnie: pomiar zasilania agregatu, np. przekaźnik DIN z licznikiem albo wtyczka z pomiarem. Jeden pomiar dla całego układu. Tworzy urządzenie Agregat z poborem mocy, energią i czujnikiem Pracuje. Interfejs RAC nie zgłasza agregatu, więc to jedyne źródło jego danych. Pola zostaw puste, aby pominąć.",
+        "data": {
+          "power_sensor": "Czujnik mocy",
+          "energy_sensor": "Czujnik energii",
+          "run_threshold": "Pracuje od (W)",
+          "outdoor_model": "Model agregatu",
+          "outdoor_serial": "Numer seryjny agregatu"
+        },
+        "data_description": {
+          "run_threshold": "Postój falownika to kilka watów, sprężarka pobiera setki. Odczyt równy lub wyższy uznajemy za pracę.",
+          "outdoor_model": "Pokazywany na urządzeniu, np. z tabliczki znamionowej."
+        }
       }
     },
     "error": {

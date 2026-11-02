@@ -21,6 +21,25 @@
       "units": {
         "title": "Discovered indoor units",
         "description": "The interface reported {count}. Clear the ones that do not belong to this installation — skipped addresses will not come back through the background scan or the button until you restore them in the options. Room names have to be given here, because the registers carry only the model and the serial number."
+      },
+      "serials": {
+        "title": "Serial numbers and models",
+        "description": "The RAC interface does not report serial numbers, and some RAC adapters report \"RACIF Model Name\" instead of the model. Type them from the nameplate or the Toshiba app; a value the interface does report wins. An empty field clears it."
+      },
+      "power": {
+        "title": "Outdoor unit",
+        "description": "Optional: a power meter on the outdoor unit's supply, for example a DIN relay with a meter or a smart plug. One meter for the whole system. It creates the Agregat device with power, energy and a Running sensor. The RAC interface does not report the outdoor unit, so this is the only source of its data. Leave the fields empty to skip.",
+        "data": {
+          "power_sensor": "Power sensor",
+          "energy_sensor": "Energy sensor",
+          "run_threshold": "Running above (W)",
+          "outdoor_model": "Outdoor unit model",
+          "outdoor_serial": "Outdoor unit serial number"
+        },
+        "data_description": {
+          "run_threshold": "Standby of an inverter unit is a few watts; the compressor draws hundreds. A reading at or above this counts as running.",
+          "outdoor_model": "Shown on the device, for example from the nameplate."
+        }
       }
     },
     "error": {

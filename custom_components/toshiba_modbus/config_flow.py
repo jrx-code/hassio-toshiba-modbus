@@ -100,12 +100,88 @@ async def _discover(
     return found
 
 
+def serial_fields(labels: dict[int, str]) -> dict[tuple[int, str], str]:
+    """Pola numeru seryjnego i modelu - dwa na jednostkę, klucz niesie etykietę."""
+    return {
+        (unit, what): f"{label} · {suffix}"
+        for unit, label in labels.items()
+        for what, suffix in ((CONF_SERIALS, "S/N"), (CONF_MODELS, "model"))
+    }
+
+
+def serial_schema(
+    fields: dict[tuple[int, str], str], current: dict[str, dict[str, str]]
+) -> vol.Schema:
+    # suggested_value zamiast default - inaczej wyczyszczone pole wracałoby
+    # z poprzednią wartością i wpisu nie dałoby się usunąć.
+    return vol.Schema({
+        vol.Optional(
+            key, description={"suggested_value": (current.get(what) or {}).get(str(unit), "")}
+        ): str
+        for (unit, what), key in fields.items()
+    })
+
+
+def read_serials(
+    fields: dict[tuple[int, str], str], user_input: dict[str, Any]
+) -> dict[str, dict[str, str]]:
+    saved: dict[str, dict[str, str]] = {CONF_SERIALS: {}, CONF_MODELS: {}}
+    for (unit, what), key in fields.items():
+        if value := (user_input.get(key) or "").strip():
+            saved[what][str(unit)] = value
+    return saved
+
+
+def power_schema(options: dict[str, Any]) -> vol.Schema:
+    """Additional devices: an external power meter on the outdoor unit's supply.
+
+    One meter for the whole system - a multisplit has one outdoor unit for all indoor
+    ones. Any sensor with the right device class will do: a DIN relay with a meter, a
+    smart plug. `suggested_value` makes a cleared field really clear the choice.
+    """
+    def suggest(key: str):
+        return {"suggested_value": options.get(key)}
+
+    def sensor(device_class: str):
+        return selector.EntitySelector(
+            selector.EntitySelectorConfig(domain="sensor", device_class=device_class)
+        )
+
+    return vol.Schema({
+        vol.Optional(CONF_POWER_SENSOR, description=suggest(CONF_POWER_SENSOR)): sensor("power"),
+        vol.Optional(CONF_ENERGY_SENSOR, description=suggest(CONF_ENERGY_SENSOR)): sensor("energy"),
+        vol.Required(
+            CONF_RUN_THRESHOLD,
+            default=options.get(CONF_RUN_THRESHOLD, DEFAULT_RUN_THRESHOLD),
+        ): number(10, 3000, "W"),
+        vol.Optional(CONF_OUTDOOR_MODEL, description=suggest(CONF_OUTDOOR_MODEL)): str,
+        vol.Optional(CONF_OUTDOOR_SERIAL, description=suggest(CONF_OUTDOOR_SERIAL)): str,
+    })
+
+
+def read_power(user_input: dict[str, Any]) -> dict[str, Any]:
+    saved: dict[str, Any] = {
+        CONF_RUN_THRESHOLD: user_input.get(CONF_RUN_THRESHOLD, DEFAULT_RUN_THRESHOLD)
+    }
+    for key in (CONF_POWER_SENSOR, CONF_ENERGY_SENSOR):
+        if user_input.get(key):
+            saved[key] = user_input[key]
+    for key in (CONF_OUTDOOR_MODEL, CONF_OUTDOOR_SERIAL):
+        if value := (user_input.get(key) or "").strip():
+            saved[key] = value
+    return saved
+
+
 class ToshibaModbusConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     def __init__(self) -> None:
         self._data: dict[str, Any] = {}
         self._found: dict[int, tuple[str, str]] = {}
+        self._names: dict[str, str] = {}
+        self._include: list[int] = []
+        self._exclude: list[int] = []
+        self._extra: dict[str, Any] = {}
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
@@ -135,7 +211,7 @@ class ToshibaModbusConfigFlow(ConfigFlow, domain=DOMAIN):
                     # Interfejs odpowiada, ale magistrala Uh jest pusta - to jest
                     # stan poprawny przed montażem adapterów RAC. Wpis powstaje
                     # z samym interfejsem, jednostki dojdą, kiedy się zgłoszą.
-                    return self._create({}, [], [])
+                    return await self.async_step_power()
                 return await self.async_step_units()
         return self.async_show_form(step_id="user", data_schema=STEP_USER, errors=errors)
 
@@ -161,9 +237,10 @@ class ToshibaModbusConfigFlow(ConfigFlow, domain=DOMAIN):
                 str(u): (user_input.get(labels[u][1]) or f"Unit {u}").strip()
                 for u in include
             }
-            return self._create(
-                names, include, [u for u in sorted(self._found) if u not in include]
-            )
+            self._names = names
+            self._include = include
+            self._exclude = [u for u in sorted(self._found) if u not in include]
+            return await (self.async_step_serials() if include else self.async_step_power())
 
         schema: dict[Any, Any] = {}
         for unit, (box, name) in labels.items():
@@ -175,16 +252,34 @@ class ToshibaModbusConfigFlow(ConfigFlow, domain=DOMAIN):
             description_placeholders={"count": str(len(self._found))},
         )
 
-    def _create(
-        self, names: dict[str, str], include: list[int], exclude: list[int]
-    ) -> ConfigFlowResult:
+    async def async_step_serials(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Serial number and model of each chosen unit, typed from the nameplate.
+
+        The RAC interface answers the serial register with 0xFF, so this is the only
+        place a serial can come from. Everything here is optional and can be changed
+        later in the options.
+        """
+        fields = serial_fields({u: f"{u} · {self._names[str(u)]}" for u in self._include})
+        if user_input is not None:
+            self._extra.update(read_serials(fields, user_input))
+            return await self.async_step_power()
+        return self.async_show_form(step_id="serials", data_schema=serial_schema(fields, {}))
+
+    async def async_step_power(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Optional power meter on the outdoor unit's supply (see `power_schema`)."""
+        if user_input is not None:
+            self._extra.update(read_power(user_input))
+            return self._create()
+        return self.async_show_form(step_id="power", data_schema=power_schema({}))
+
+    def _create(self) -> ConfigFlowResult:
         data = dict(self._data)
-        data[CONF_UNITS] = sorted(include)
-        data["names"] = names
+        data[CONF_UNITS] = sorted(self._include)
+        data["names"] = self._names
         return self.async_create_entry(
             title=f"Toshiba ({self._data[CONF_HOST]})",
             data=data,
-            options={CONF_EXCLUDED: sorted(exclude)},
+            options={CONF_EXCLUDED: sorted(self._exclude), **self._extra},
         )
 
     @staticmethod
@@ -273,68 +368,17 @@ class ToshibaModbusOptionsFlow(OptionsFlow):
 
     async def async_step_serials(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Numer seryjny i model każdej jednostki - dwa pola na jednostkę."""
-        labels = self._serial_keys()
-        fields = {
-            (unit, what): f"{label} · {suffix}"
-            for unit, label in labels.items()
-            for what, suffix in ((CONF_SERIALS, "S/N"), (CONF_MODELS, "model"))
-        }
+        fields = serial_fields(self._serial_keys())
         if user_input is not None:
-            saved: dict[str, dict[str, str]] = {CONF_SERIALS: {}, CONF_MODELS: {}}
-            for (unit, what), key in fields.items():
-                if value := (user_input.get(key) or "").strip():
-                    saved[what][str(unit)] = value
-            self._options.update(saved)
+            self._options.update(read_serials(fields, user_input))
             return await self.async_step_power()
         current = {what: self.config_entry.options.get(what) or {} for what in (CONF_SERIALS, CONF_MODELS)}
-        # suggested_value zamiast default - inaczej wyczyszczone pole wracałoby
-        # z poprzednią wartością i wpisu nie dałoby się usunąć.
-        return self.async_show_form(
-            step_id="serials",
-            data_schema=vol.Schema({
-                vol.Optional(key, description={"suggested_value": current[what].get(str(unit), "")}): str
-                for (unit, what), key in fields.items()
-            }),
-        )
+        return self.async_show_form(step_id="serials", data_schema=serial_schema(fields, current))
 
     async def async_step_power(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """Additional devices: an external power meter on the outdoor unit's supply.
-
-        One meter for the whole system - a multisplit has one outdoor unit for all indoor
-        ones. Any sensor with the right device class will do: a DIN relay with a meter, a
-        smart plug. `suggested_value` makes a cleared field really clear the choice.
-        """
-        options = self.config_entry.options
+        """Additional devices: the outdoor unit's power meter (see `power_schema`)."""
         if user_input is not None:
-            saved: dict[str, Any] = {
-                CONF_RUN_THRESHOLD: user_input.get(CONF_RUN_THRESHOLD, DEFAULT_RUN_THRESHOLD)
-            }
-            for key in (CONF_POWER_SENSOR, CONF_ENERGY_SENSOR):
-                if user_input.get(key):
-                    saved[key] = user_input[key]
-            for key in (CONF_OUTDOOR_MODEL, CONF_OUTDOOR_SERIAL):
-                if value := (user_input.get(key) or "").strip():
-                    saved[key] = value
-            return self.async_create_entry(data={**self._options, **saved})
-
-        def suggest(key: str):
-            return {"suggested_value": options.get(key)}
-
-        def sensor(device_class: str):
-            return selector.EntitySelector(
-                selector.EntitySelectorConfig(domain="sensor", device_class=device_class)
-            )
-
+            return self.async_create_entry(data={**self._options, **read_power(user_input)})
         return self.async_show_form(
-            step_id="power",
-            data_schema=vol.Schema({
-                vol.Optional(CONF_POWER_SENSOR, description=suggest(CONF_POWER_SENSOR)): sensor("power"),
-                vol.Optional(CONF_ENERGY_SENSOR, description=suggest(CONF_ENERGY_SENSOR)): sensor("energy"),
-                vol.Required(
-                    CONF_RUN_THRESHOLD,
-                    default=options.get(CONF_RUN_THRESHOLD, DEFAULT_RUN_THRESHOLD),
-                ): number(10, 3000, "W"),
-                vol.Optional(CONF_OUTDOOR_MODEL, description=suggest(CONF_OUTDOOR_MODEL)): str,
-                vol.Optional(CONF_OUTDOOR_SERIAL, description=suggest(CONF_OUTDOOR_SERIAL)): str,
-            }),
+            step_id="power", data_schema=power_schema(dict(self.config_entry.options))
         )

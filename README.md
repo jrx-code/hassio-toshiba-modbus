@@ -169,8 +169,8 @@ to alert on — the interface still answers diagnostics, but no longer serves th
 - **The interface does not report the outdoor unit.** A multisplit has one outdoor unit
   for all indoor ones, and the RAC interface has no registers for it (Service Manual
   rev. 7, section 8-2 covers only EER/VRF; `N+2` answers loopback and nothing else).
-  To get its power draw, pick a power sensor on its supply in the options ("Outdoor
-  unit"): that creates an `Agregat` device with power, energy and a `Running` sensor.
+  To get its power draw, pick a power sensor on its supply in the setup or later in
+  the options ("Outdoor unit"): that creates an `Agregat` device with power, energy and a `Running` sensor.
   One meter for the whole system, so it cannot tell which room is the reason.
 - **`Central controller ID` must be `old controller`** when RAC adapters are used
   (Service Manual A10-2103-7 rev. 7, p. 16). The factory value is ID20 and it
