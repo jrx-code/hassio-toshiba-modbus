@@ -21,9 +21,10 @@ from . import registers as reg
 from .transport import call, link_params
 from .const import (
     CONF_DISCOVER_MAX, CONF_EXCLUDED, CONF_FRAMING, CONF_RESCAN_INTERVAL, CONF_SCAN_INTERVAL,
-    CONF_MODELS, CONF_SERIALS,
+    CONF_ENERGY_SENSOR, CONF_MODELS, CONF_OUTDOOR_MODEL, CONF_OUTDOOR_SERIAL, CONF_POWER_SENSOR,
+    CONF_RUN_THRESHOLD, CONF_SERIALS,
     CONF_SLAVE, CONF_UNITS, DEFAULT_DISCOVER_MAX, DEFAULT_PORT,
-    DEFAULT_RESCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DEFAULT_SLAVE,
+    DEFAULT_RESCAN_INTERVAL, DEFAULT_RUN_THRESHOLD, DEFAULT_SCAN_INTERVAL, DEFAULT_SLAVE,
     DOMAIN, FRAMING_RTUOVERTCP, FRAMINGS,
 )
 
@@ -211,6 +212,10 @@ class ToshibaModbusOptionsFlow(OptionsFlow):
             if not self._units():
                 options[CONF_SERIALS] = self.config_entry.options.get(CONF_SERIALS) or {}
                 options[CONF_MODELS] = self.config_entry.options.get(CONF_MODELS) or {}
+                for key in (CONF_POWER_SENSOR, CONF_ENERGY_SENSOR, CONF_OUTDOOR_MODEL,
+                            CONF_OUTDOOR_SERIAL, CONF_RUN_THRESHOLD):
+                    if (value := self.config_entry.options.get(key)) is not None:
+                        options[key] = value
                 return self.async_create_entry(data=options)
             return await self.async_step_serials()
         def now(key, fallback):
@@ -279,7 +284,8 @@ class ToshibaModbusOptionsFlow(OptionsFlow):
             for (unit, what), key in fields.items():
                 if value := (user_input.get(key) or "").strip():
                     saved[what][str(unit)] = value
-            return self.async_create_entry(data={**self._options, **saved})
+            self._options.update(saved)
+            return await self.async_step_power()
         current = {what: self.config_entry.options.get(what) or {} for what in (CONF_SERIALS, CONF_MODELS)}
         # suggested_value zamiast default - inaczej wyczyszczone pole wracałoby
         # z poprzednią wartością i wpisu nie dałoby się usunąć.
@@ -288,5 +294,47 @@ class ToshibaModbusOptionsFlow(OptionsFlow):
             data_schema=vol.Schema({
                 vol.Optional(key, description={"suggested_value": current[what].get(str(unit), "")}): str
                 for (unit, what), key in fields.items()
+            }),
+        )
+
+    async def async_step_power(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Additional devices: an external power meter on the outdoor unit's supply.
+
+        One meter for the whole system - a multisplit has one outdoor unit for all indoor
+        ones. Any sensor with the right device class will do: a DIN relay with a meter, a
+        smart plug. `suggested_value` makes a cleared field really clear the choice.
+        """
+        options = self.config_entry.options
+        if user_input is not None:
+            saved: dict[str, Any] = {
+                CONF_RUN_THRESHOLD: user_input.get(CONF_RUN_THRESHOLD, DEFAULT_RUN_THRESHOLD)
+            }
+            for key in (CONF_POWER_SENSOR, CONF_ENERGY_SENSOR):
+                if user_input.get(key):
+                    saved[key] = user_input[key]
+            for key in (CONF_OUTDOOR_MODEL, CONF_OUTDOOR_SERIAL):
+                if value := (user_input.get(key) or "").strip():
+                    saved[key] = value
+            return self.async_create_entry(data={**self._options, **saved})
+
+        def suggest(key: str):
+            return {"suggested_value": options.get(key)}
+
+        def sensor(device_class: str):
+            return selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor", device_class=device_class)
+            )
+
+        return self.async_show_form(
+            step_id="power",
+            data_schema=vol.Schema({
+                vol.Optional(CONF_POWER_SENSOR, description=suggest(CONF_POWER_SENSOR)): sensor("power"),
+                vol.Optional(CONF_ENERGY_SENSOR, description=suggest(CONF_ENERGY_SENSOR)): sensor("energy"),
+                vol.Required(
+                    CONF_RUN_THRESHOLD,
+                    default=options.get(CONF_RUN_THRESHOLD, DEFAULT_RUN_THRESHOLD),
+                ): number(10, 3000, "W"),
+                vol.Optional(CONF_OUTDOOR_MODEL, description=suggest(CONF_OUTDOOR_MODEL)): str,
+                vol.Optional(CONF_OUTDOOR_SERIAL, description=suggest(CONF_OUTDOOR_SERIAL)): str,
             }),
         )

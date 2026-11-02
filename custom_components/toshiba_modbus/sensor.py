@@ -20,7 +20,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from . import registers as reg
 from .const import DOMAIN, SIGNAL_NEW_UNIT
 from .coordinator import ToshibaModbusCoordinator
-from .entity import ToshibaInterfaceEntity, ToshibaUnitEntity
+from .entity import ToshibaInterfaceEntity, ToshibaOutdoorEntity, ToshibaUnitEntity
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -117,6 +117,10 @@ async def async_setup_entry(
         for desc in SENSORS
     ]
     entities.extend(ToshibaInterfaceSensor(coordinator, desc) for desc in INTERFACE_SENSORS)
+    if coordinator.power_source():
+        entities.append(ToshibaOutdoorSensor(coordinator, "power"))
+    if coordinator.energy_source():
+        entities.append(ToshibaOutdoorSensor(coordinator, "energy"))
     async_add_entities(entities)
 
 
@@ -139,6 +143,48 @@ class ToshibaSensor(ToshibaUnitEntity, SensorEntity):
     @property
     def native_value(self):
         return self.entity_description.convert(self.coordinator, self._unit)
+
+
+class ToshibaOutdoorSensor(ToshibaOutdoorEntity, SensorEntity):
+    """Power or energy of the outdoor unit, mirrored from the meter chosen in the options.
+
+    Unit and state class come from the source: a BleBox "energy last hour" sensor and a
+    lifetime total are both `energy`, and only the source knows which one it is.
+    """
+
+    def __init__(self, coordinator, kind: str) -> None:
+        super().__init__(coordinator, kind)
+        self._kind = kind
+        self._attr_translation_key = f"measured_{kind}"
+        self._attr_device_class = (
+            SensorDeviceClass.POWER if kind == "power" else SensorDeviceClass.ENERGY
+        )
+
+    def _source(self) -> str | None:
+        c = self.coordinator
+        return c.power_source() if self._kind == "power" else c.energy_source()
+
+    def _from_source(self, attribute: str | None = None):
+        source = self._source()
+        state = self.hass.states.get(source) if source else None
+        if state is None:
+            return None
+        return state.state if attribute is None else state.attributes.get(attribute)
+
+    @property
+    def native_value(self):
+        try:
+            return float(self._from_source())
+        except (TypeError, ValueError):
+            return None
+
+    @property
+    def native_unit_of_measurement(self):
+        return self._from_source("unit_of_measurement")
+
+    @property
+    def state_class(self):
+        return self._from_source("state_class")
 
 
 @dataclass(frozen=True, kw_only=True)

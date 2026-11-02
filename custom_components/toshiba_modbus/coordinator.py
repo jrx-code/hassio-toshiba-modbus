@@ -19,18 +19,23 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from modbus_connection import ModbusError, ModbusUnit
 
+from . import power
 from . import registers as reg
 from .const import (
     CONF_DISCOVER_MAX,
+    CONF_ENERGY_SENSOR,
     CONF_EXCLUDED,
     CONF_FRAMING,
     CONF_MODELS,
+    CONF_POWER_SENSOR,
     CONF_RESCAN_INTERVAL,
+    CONF_RUN_THRESHOLD,
     CONF_SERIALS,
     CONF_SLAVE,
     CONF_UNITS,
     DEFAULT_DISCOVER_MAX,
     DEFAULT_RESCAN_INTERVAL,
+    DEFAULT_RUN_THRESHOLD,
     DEFAULT_SCAN_INTERVAL,
     FRAMING_RTUOVERTCP,
     IFACE_SLOW_INTERVAL,
@@ -403,6 +408,29 @@ class ToshibaModbusCoordinator(DataUpdateCoordinator[dict[str, dict[int, int]]])
         Odczyt wygrywa: jeśli kiedyś interfejs zacznie go podawać, to on jest źródłem.
         """
         return self.text(unit, "serial") or self.serials.get(unit)
+
+    # --------------------------------------------------- zewnętrzny pomiar zasilania
+
+    def power_source(self) -> str | None:
+        """entity_id czujnika mocy agregatu wybranego w opcjach."""
+        return self.entry.options.get(CONF_POWER_SENSOR) or None
+
+    def energy_source(self) -> str | None:
+        return self.entry.options.get(CONF_ENERGY_SENSOR) or None
+
+    def power_watts(self) -> float | None:
+        """Aktualny pobór agregatu w watach; None gdy nie wybrano czujnika albo brak odczytu."""
+        entity_id = self.power_source()
+        state = self.hass.states.get(entity_id) if entity_id else None
+        if state is None or state.state in ("unknown", "unavailable"):
+            return None
+        return power.to_watts(state.state, state.attributes.get("unit_of_measurement"))
+
+    def running(self) -> bool | None:
+        """Czy agregat pobiera więcej niż postój. Dotyczy całego układu: który z pokojów
+        to powoduje, z jednego licznika nie wynika."""
+        threshold = self.entry.options.get(CONF_RUN_THRESHOLD, DEFAULT_RUN_THRESHOLD)
+        return power.is_running(self.power_watts(), float(threshold))
 
     def unit_name(self, unit: int) -> str:
         return self.names.get(unit) or f"Unit {unit}"
