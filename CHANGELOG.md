@@ -3,6 +3,15 @@
 All notable changes to this project. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project follows [Semantic Versioning](https://semver.org/) from 1.0.0 on.
 
+## [Unreleased]
+
+### Changed
+- Climate entity uses Home Assistant 2026.11 native temperature members
+  (`native_current_temperature`, `native_target_temperature`,
+  `_attr_native_temperature_unit`). Minimum Home Assistant version in
+  `hacs.json` raised to 2026.11.0. Do not install this build on 2026.10;
+  release waits until production HA is on 2026.11.
+
 ## [1.0.3] - 2026-11-05
 
 ### Added
