@@ -56,7 +56,7 @@ class ToshibaClimate(ToshibaUnitEntity, ClimateEntity):
     """Sterowanie klimatem jednej jednostki wewnętrznej."""
 
     _attr_name = None
-    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_target_temperature_step = reg.TEMP_STEP
     _attr_min_temp = reg.TEMP_MIN
     _attr_max_temp = reg.TEMP_MAX
@@ -81,11 +81,11 @@ class ToshibaClimate(ToshibaUnitEntity, ClimateEntity):
         return reg.tenths(self.coordinator.word(self._unit, space, key))
 
     @property
-    def current_temperature(self) -> float | None:
+    def native_current_temperature(self) -> float | None:
         return self._scaled("input", "room_temp")
 
     @property
-    def target_temperature(self) -> float | None:
+    def native_target_temperature(self) -> float | None:
         # Status 30002, nie polecenie 40001. Rejestr polecenia trzyma to, co ostatnio
         # zapisał Modbus - na instalacji 0 tam, gdzie nikt nie pisał, i starą wartość
         # po zmianie z pilota. Zmierzone 2026-09-28: 40001 = 0 / 21.5, 30002 = 22 / 21.
