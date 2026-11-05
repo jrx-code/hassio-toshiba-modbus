@@ -3,6 +3,11 @@
 All notable changes to this project. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project follows [Semantic Versioning](https://semver.org/) from 1.0.0 on.
 
+## [1.0.3] - 2026-11-05
+
+### Added
+- Manifest declares `categories` (Climate › Heat pumps & air conditioning), so the Home Assistant 2026.11 Marketplace lists the integration under that category. No functional change.
+
 ## [1.0.2] - 2026-11-02
 
 ### Changed

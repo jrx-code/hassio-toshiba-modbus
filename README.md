@@ -28,7 +28,7 @@ and one **TCB-SSRL011UUP-E** RAC adapter per indoor unit. No cloud, no vendor ac
 
 ## Quick start
 
-1. **Install** with HACS (it is in the default store) or from the release zip, then restart Home Assistant.
+1. **Install** with HACS or the Marketplace on Home Assistant 2026.11+ (it is in the default store) or from the release zip, then restart Home Assistant.
    Requires Home Assistant **2026.9** or later. See [Installation](docs/installation.md).
 2. *Settings, Devices & services, Add integration, Toshiba AC (Modbus)*, and enter the address of the RS-485 gateway,
    the framing and the slave address from switch **SW1**.

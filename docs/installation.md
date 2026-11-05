@@ -23,7 +23,7 @@
 
 ## Install with HACS
 
-1. In HACS open *Integrations*, search for **Toshiba AC (Modbus)** (it is in the default store)
+1. In HACS open *Integrations* (on Home Assistant 2026.11+: the Marketplace), search for **Toshiba AC (Modbus)** (it is in the default store)
    and download it. If your HACS does not list it yet, add
    `https://github.com/jrx-code/hassio-toshiba-modbus` as a custom repository of type *Integration*.
 2. Restart Home Assistant.
